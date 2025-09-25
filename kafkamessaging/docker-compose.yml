@@ -10,6 +10,12 @@ services:
     volumes:
       - zk-data:/var/lib/zookeeper/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo ruok | nc -w 5 localhost 2181 | grep imok || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
@@ -21,9 +27,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      # Listen on all interfaces inside the container
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      # Advertise the docker service name so other services in the network can reach Kafka
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -32,16 +36,22 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9092 >/dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
 
   app:
     build: .
     container_name: kafkamessaging-app-1
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
-      # optional: override spring boot server.port if needed
       SPRING_OUTPUT_ANSI_ENABLED: "ALWAYS"
     restart: unless-stopped
 
