@@ -1,29 +1,50 @@
-version: '3.8'
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
+    container_name: kafkamessaging-zookeeper-1
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    volumes:
+      - zk-data:/var/lib/zookeeper/data
+    restart: unless-stopped
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
+    container_name: kafkamessaging-kafka-1
     depends_on:
       - zookeeper
     ports:
       - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      # Listen on all interfaces inside the container
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      # Advertise the docker service name so other services in the network can reach Kafka
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    restart: unless-stopped
 
   app:
     build: .
+    container_name: kafkamessaging-app-1
     depends_on:
       - kafka
     ports:
       - "8080:8080"
+    environment:
+      # optional: override spring boot server.port if needed
+      SPRING_OUTPUT_ANSI_ENABLED: "ALWAYS"
+    restart: unless-stopped
+
+volumes:
+  kafka-data:
+  zk-data:

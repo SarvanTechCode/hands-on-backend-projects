@@ -2,9 +2,6 @@ server:
   port: 8080
 
 spring:
-  application:
-    name: kafkamessaging
-
   kafka:
     bootstrap-servers: kafka:9092
     consumer:
@@ -15,6 +12,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  application:
+    name: kafkamessaging
 
 logging:
   level:
