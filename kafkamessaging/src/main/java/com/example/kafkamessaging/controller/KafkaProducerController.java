@@ -3,10 +3,12 @@ package com.example.kafkamessaging.controller;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.kafkamessaging.KafkaTopicConfig;
 import com.example.kafkamessaging.Dto.MessageDto;
 
+@RestController   // ✅ tells Spring this is a REST controller
 public class KafkaProducerController {
 
     private final KafkaTemplate<String, String> kafkaTemplate;
@@ -19,8 +21,7 @@ public class KafkaProducerController {
     public String publish(@RequestBody MessageDto message) {
         String payload = message.toString();
         kafkaTemplate.send(KafkaTopicConfig.TOPIC, message.getId(), payload);
-        
-        System.out.println("test");
+        System.out.println("test"); // ✅ will print to container logs
         return "Published to Kafka: " + payload;
     }
 }
