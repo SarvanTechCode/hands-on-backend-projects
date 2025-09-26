@@ -5,18 +5,9 @@ spring:
   application:
     name: kafkamessaging
 
-  kafka:
-    bootstrap-servers: kafka:9092
-    admin:
-      fail-fast: false        # do not fail startup if Kafka isn't ready yet
-    consumer:
-      group-id: sarvan-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
 
 logging:
   level:
